@@ -3,6 +3,7 @@ module github.com/take-o20/go-cli-example
 go 1.23.2
 
 require (
+	github.com/golang/mock v1.6.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 )
