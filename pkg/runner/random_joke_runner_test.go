@@ -4,36 +4,27 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/take-o20/go-cli-example/pkg/client"
 )
 
-type mockHttpClient struct {
-	mockResponse string
-	mockError    error
-}
-
-func (m *mockHttpClient) Get(string) (string, error) {
-	return m.mockResponse, m.mockError
-}
-
-func createMockHttpClinet(t *testing.T, mockResponse string, mockError error) client.HttpClient {
-	t.Helper()
-	return &mockHttpClient{
-		mockResponse: mockResponse,
-		mockError:    mockError,
-	}
-}
-
 func TestRandomJokeRunner_Succeeded(t *testing.T) {
-	testResponse := `
+	mockResponse := `
 {
   "type": "programming",
   "setup": "Knock-knock.",
   "punchline": "A race condition. Who is there?",
   "id": 362
 }`
-	mockClient := createMockHttpClinet(t, testResponse, nil)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := client.NewMockHttpClient(ctrl)
+	mockClient.EXPECT().
+		Get("https://official-joke-api.appspot.com/jokes/random").
+		Return(mockResponse, nil)
+
 	runner := RandomJokeRunner{
 		client: mockClient,
 	}
@@ -42,9 +33,17 @@ func TestRandomJokeRunner_Succeeded(t *testing.T) {
 }
 
 func TestRandomJokeRunner_Failed(t *testing.T) {
-	testResponse := ""
+	mockResponse := ""
 	mockErr := errors.New("mock error")
-	mockClient := createMockHttpClinet(t, testResponse, mockErr)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := client.NewMockHttpClient(ctrl)
+	mockClient.EXPECT().
+		Get("https://official-joke-api.appspot.com/jokes/random").
+		Return(mockResponse, mockErr)
+
 	runner := RandomJokeRunner{
 		client: mockClient,
 	}
